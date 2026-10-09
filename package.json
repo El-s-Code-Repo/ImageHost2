@@ -1,14 +1,14 @@
 {
-  "name": "webapp",
+  "name": "ImageHost2-electric-boogaloo",
   "version": "1.0.0",
-  "description": "This is a template node app",
-  "homepage": "https://github.com/Messier1071/template-prog-web#readme",
+  "description": "my site to save images and gifs cuz twitter is aah",
+  "homepage": "https://github.com/El-s-Code-Repo/ImageHost2/blob/main/README.md",
   "bugs": {
-    "url": "https://github.com/Messier1071/template-prog-web/issues"
+    "url": "https://github.com/El-s-Code-Repo/ImageHost2/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Messier1071/template-prog-web.git"
+    "url": "git+https://github.com/El-s-Code-Repo/ImageHost2.git"
   },
   "license": "ISC",
   "author": "Mess",
@@ -20,12 +20,14 @@
   "scripts": {
     "start": "node ./app/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon app/app.mjs"
+    "dev": "nodemon app/app.js"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "mongodb": "^7.7.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "typescript": "^7.0.2"
   }
 }
