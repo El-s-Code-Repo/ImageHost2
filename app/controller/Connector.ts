@@ -1,15 +1,13 @@
 // Source - https://stackoverflow.com/a/49400334
 // Posted by Matt, modified by community. See post 'Timeline' for change history
 // Retrieved 2026-09-23, License - CC BY-SA 4.0
-import {MongoClient, UUID} from "mongodb";
+import {MongoClient, UUID,Collection} from "mongodb";
 
 
 export class Connection {
-    /** @type {import("mongodb").Collection<any>} */
-    static images:import("mongodb").Collection<any>;
 
-    // /** @type {import("mongodb").Collection<any>} */
-    // static appointments:import("mongodb").Collection<any>;
+    static images:Collection<any>;
+    static tags:Collection<any>;
     //
     // /** @type {import("mongodb").Collection<any>} */
     // static timetable:import("mongodb").Collection<any>;
@@ -28,7 +26,7 @@ export class Connection {
         });
         this.db = await this.mongoclient.db("ImageHost");
         this.images = await this.db.collection('images');
-        // this.appointments = await this.db.collection('appointments');
+        this.tags= await this.db.collection('tags');
         // this.timetable = await this.db.collection('timetable');
         return this.db;
     }
