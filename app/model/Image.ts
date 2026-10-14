@@ -1,17 +1,14 @@
 // @ts-check
 import {Connection} from "../controller/Connector.ts"
 
-export class Client {
-    constructor(Name:string, cpf:u, _id = "") {
-        if (!Name || String(Name).trim() === "") {
-            throw "No Name provided";
-        }
-        if (cpf === undefined || cpf === null || String(cpf).trim() === "") {
-            throw "No CPF provided";
-        }
+export class Image {
+    private _id: string;
+    // private fileName: string; filename == uuid
+    private tags:string[];
+    constructor(tags:string[],_id:string = "") {
 
-        this.name = String(Name).trim();
-        this.cpf = String(cpf).trim();
+
+        this.tags = Array.from(tags); //TODO update to use new tag model!
         this._id = _id;
     }
 
@@ -19,44 +16,52 @@ export class Client {
 
     async save() {
         try {
-            let data = await Connection.clients.updateOne(
-                {cpf: this.cpf},
-                {$set: {name: this.name, cpf: this.cpf}},
-                {upsert: true}
-            );
-            if (data.upsertedId != null) {
-                this._id = data.upsertedId;
+            if (this._id === ""){
+                let data = await Connection.images.insertOne({
+                    tags:this.tags,
+                    });
+                this._id = data.insertedId.toString();
+
+            }else{
+                let data = await Connection.images.updateOne(
+                    {_id: this._id},
+                    {$set: {tags: this.tags}},
+                    {upsert: true}
+                );
+                if (data.upsertedId != null) {
+                    this._id = data.upsertedId.toString();
+                }
             }
         } catch (err) {
             console.log(err);
         }
     }
-
-    /**
-     * @param {String|Number} cpf
-     * @param {String} name
-     * @returns {Promise<Client>}
-     */
-    static async get(name:Number, cpf) {
-        let testClient = await Client.getClientByCPF(cpf);
-
-        if (testClient != null) {
-            return new Client(testClient.name, testClient.cpf, testClient._id);
-        } else {
-            return new Client(name, cpf);
-        }
-    }
-
-    /**
-     * @param {String|Number} cpf
-     */
-    static async getImageById(id:number) {
-        const normalizedCpf = String(cpf).trim();
-        let clientData = await Connection.clients.findOne({cpf: normalizedCpf});
-        if (clientData != null) {
-            return new Client(clientData.name, clientData.cpf, clientData._id);
-        } else {
-            return null;
-        }
-    }
+    //
+    // /**
+    //  * @param {String|Number} cpf
+    //  * @param {String} name
+    //  * @returns {Promise<Client>}
+    //  */
+    // static async get(name:Number, cpf) {
+    //     let testClient = await Client.getClientByCPF(cpf);
+    //
+    //     if (testClient != null) {
+    //         return new Client(testClient.name, testClient.cpf, testClient._id);
+    //     } else {
+    //         return new Client(name, cpf);
+    //     }
+    // }
+    //
+    // /**
+    //  * @param {Number} id
+    //  */
+    // static async getImageById(id:number) {
+    //     const normalizedCpf = String(cpf).trim();
+    //     let clientData = await Connection.clients.findOne({cpf: normalizedCpf});
+    //     if (clientData != null) {
+    //         return new Client(clientData.name, clientData.cpf, clientData._id);
+    //     } else {
+    //         return null;
+    //     }
+    // }
 }

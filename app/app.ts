@@ -1,6 +1,6 @@
 console.log("Hello World")
 import express from "express"
-
+import {Connection} from "./controller/Connector.ts"
 let app = express()
 
 app.use(express.static("./static"))
