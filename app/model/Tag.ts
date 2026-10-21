@@ -1,65 +1,65 @@
 // @ts-check
 import {Connection} from "../controller/Connector.ts"
-import {UUID} from "mongodb";
+
 
 export class Tag {
     private _id: string;
     private name:string;
 
-    constructor(name:string) {
+    constructor(name:string,_id:string="") {
         this.name = name;
-        this._id = name.toLowerCase().trim().replaceAll(" ", "_")
+        if(_id === ""){
+            this._id = Tag.slugify(name)
+        }else{
+            this._id = _id
+        }
+
     }
-
-
 
     async save() {
         try {
-            let data = await Connection.tags.insertOne({
-                tags: this.tags,
-            });
-
-            }
-            // }else{
-            //     let data = await Connection.images.updateOne(
-            //         {_id: this._id},
-            //         {$set: {tags: this.tags}},
-            //         {upsert: true}
-            //     );
-            //     if (data.upsertedId != null) {
-            //         this._id = data.upsertedId.toString();
-            //     }
-            // }
+            await Connection.tags.updateOne(
+                {_id:this._id},
+                {$set:{name: this.name,
+                _id: this._id}},
+                {upsert:true});
         } catch (err) {
             console.log(err);
         }
     }
-    //
-    // /**
-    //  * @param {String|Number} cpf
-    //  * @param {String} name
-    //  * @returns {Promise<Client>}
-    //  */
-    // static async get(name:Number, cpf) {
-    //     let testClient = await Client.getClientByCPF(cpf);
-    //
-    //     if (testClient != null) {
-    //         return new Client(testClient.name, testClient.cpf, testClient._id);
-    //     } else {
-    //         return new Client(name, cpf);
-    //     }
-    // }
-    //
-    // /**
-    //  * @param {Number} id
-    //  */
-    // static async getImageById(id:number) {
-    //     const normalizedCpf = String(cpf).trim();
-    //     let clientData = await Connection.clients.findOne({cpf: normalizedCpf});
-    //     if (clientData != null) {
-    //         return new Client(clientData.name, clientData.cpf, clientData._id);
-    //     } else {
-    //         return null;
-    //     }
-    // }
+
+
+    static async getBySlug(slug:string){
+        let tagData = await Connection.tags.findOne({_id: slug});
+
+        if (tagData != null) {
+            return new Tag(tagData.name,tagData._id);
+        } else {
+            return null;
+        }
+    }
+
+    static async findOrCreate(name:string){
+        let tagData = await Connection.tags.findOne({_id: Tag.slugify(name)});
+
+        if (tagData != null) {
+            return new Tag(tagData.name,tagData._id);
+        } else {
+            let temporaryTag = new Tag(name)
+            await temporaryTag.save()
+            return temporaryTag;
+        }
+    }
+
+    static slugify(name:string){
+        return name.toLowerCase().trim().replaceAll(" ", "_")
+    }
+
+    getName(){
+        return this.name;
+    }
+    getSlug(){
+        return this._id;
+    }
+
 }

@@ -1,31 +1,54 @@
 // @ts-check
 import {Connection} from "../controller/Connector.ts"
+import {Tag} from "./Tag.ts";
+import {UUID} from "mongodb";
 
 export class Image {
-    private _id: string;
-    // private fileName: string; filename == uuid
-    private tags:string[];
-    constructor(tags:string[],_id:string = "") {
+    _id: string;
 
-
+    private tags:Tag[];
+    /*
+    * Do not use constructor directly, call Image.create() instead
+    * */
+    constructor(tags:Tag[],_id:string = "") {
         this.tags = Array.from(tags); //TODO update to use new tag model!
         this._id = _id;
     }
 
+    static async create(tags:string[],_id:string=""):Promise<Image>{
+        let tagList:Tag[] = []
 
+        for (const tagName of tags) {
+            let temporaryTag:Tag = await Tag.findOrCreate(tagName)
+            tagList.push(temporaryTag)
+        }
+
+        if(_id === ""){
+            return new Image(tagList)
+        }else{
+            return new Image(tagList,_id)
+        }
+    }
+
+    static async get(id:UUID){
+        let lookupResult = await Connection.images.findOne({_id:id});
+        return Image.create(lookupResult.tags,lookupResult._id);
+    }
 
     async save() {
+        let tagSlugs:string[] = this.getTagSlugs()
+
         try {
             if (this._id === ""){
                 let data = await Connection.images.insertOne({
-                    tags:this.tags,
+                    tags:tagSlugs,
                     });
                 this._id = data.insertedId.toString();
 
             }else{
                 let data = await Connection.images.updateOne(
                     {_id: this._id},
-                    {$set: {tags: this.tags}},
+                    {$set: {tags: tagSlugs}},
                     {upsert: true}
                 );
                 if (data.upsertedId != null) {
@@ -36,32 +59,21 @@ export class Image {
             console.log(err);
         }
     }
-    //
-    // /**
-    //  * @param {String|Number} cpf
-    //  * @param {String} name
-    //  * @returns {Promise<Client>}
-    //  */
-    // static async get(name:Number, cpf) {
-    //     let testClient = await Client.getClientByCPF(cpf);
-    //
-    //     if (testClient != null) {
-    //         return new Client(testClient.name, testClient.cpf, testClient._id);
-    //     } else {
-    //         return new Client(name, cpf);
-    //     }
-    // }
-    //
-    // /**
-    //  * @param {Number} id
-    //  */
-    // static async getImageById(id:number) {
-    //     const normalizedCpf = String(cpf).trim();
-    //     let clientData = await Connection.clients.findOne({cpf: normalizedCpf});
-    //     if (clientData != null) {
-    //         return new Client(clientData.name, clientData.cpf, clientData._id);
-    //     } else {
-    //         return null;
-    //     }
-    // }
+
+    getTagNames():string[]{
+        let tagList:string[] = []
+        for (const tag of this.tags) {
+            tagList.push(tag.getName())
+        }
+        return tagList
+    }
+
+    getTagSlugs():string[]{
+        let tagList:string[] = []
+        for (const tag of this.tags) {
+            tagList.push(tag.getSlug())
+        }
+        return tagList
+    }
+
 }
