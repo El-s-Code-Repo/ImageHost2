@@ -20,8 +20,9 @@ app.get("/",function (req,res) {
 })
 app.post("/formdata",tagImage)
 
-
+await Connection.open()
 app.listen(3000, function (){
+
     console.log("waiting for people...")
 
 })

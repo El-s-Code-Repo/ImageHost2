@@ -1,6 +1,9 @@
 import fs from "node:fs/promises";
-
+import path from "node:path"
+import sharp from "sharp"
 import * as QueryString from "qs"
+import {Image} from "../model/Image.ts";
+import express from "express";
 /*
 [x] get list of pending images
 show first one to user
@@ -9,19 +12,83 @@ move to sorted folder and rename to UUID from db
 TODO: add source link to Image table in DB
  */
 async function getPendingFiles(path:string= "./media/unsorted"):Promise<string[]>{
-    return await fs.readdir(folderPath);
+    // return await fs.readdir(folderPath);
 }
 
 export async function tagImage(req:any,res:any){
     console.log(req.body)
 
-    // const fileName:string ;
-    // const tags:string[];
-    // const sourceLink:string;
-    res.redirect("/media/unsorted/"+req.body.fileName)
+    const fileName:string = req.body?.fileName;
+    let unparsedTags:string = req.body?.tags;
+    let splitTags = unparsedTags.split("#")
+    const tags:string[] = [];
+    for (const tag of splitTags) {
+        if (tag !== ""){
+            tags.push(tag.trim())
+        }
+    }
+    console.log(tags)
+
+    const sourceLink:string = req.body?.sauce;
+    console.log(fileName)
+    console.log(tags)
+    console.log(sourceLink)
+    let data = await Image.create(tags)
+    await data.save()
+    console.log(data);
+
+    let newPath = await archiveImage(fileName,data._id)
+    res.redirect(newPath)
 }
 
-export async function handleClientBooking(req, res) {
+
+async function archiveImage(fileName:string, id:string) {
+    const source:string = "./media/unsorted/"
+    const target:string = "./media/tagged/"
+    let filetype = path.extname(fileName)
+    if(filetype === ".gif"){
+        try {
+               await fs.rename(source+fileName,target+id+filetype)
+            }catch (e){
+                console.log(e)
+            }
+            return target+id+".gif"
+    }else{
+        await sharp(source+fileName)
+            .toFormat('png') // Options: 'jpeg', 'png', 'webp', 'avif', 'tiff'
+            .toFile(target+id+".png")
+        await fs.unlink(source+fileName)
+        return target+id+".png"
+}
+    return "if this gets returned we royally fucked up somewhere"
+}
+
+/*
+
+const path = require('path');
+
+const ext = path.extname('index.html');
+console.log(ext); // ".html" (Note: includes the leading dot)
+
+import fs from 'fs/promises';
+// Or if using CommonJS: const fs = require('fs').promises;
+
+async function moveAndRename() {
+  const oldPath = './source_folder/old_name.txt';
+  const newPath = './destination_folder/new_name.txt';
+
+  try {
+    await fs.rename(oldPath, newPath);
+    console.log('File successfully moved and renamed!');
+  } catch (error) {
+    console.error('Error executing file operation:', error);
+  }
+}
+
+moveAndRename();
+
+ */
+export async function handleClientBooking(req:any, res:any) {
     try {
         const name = req.body?.name ? String(req.body.name).trim() : "";
         const cpf = req.body?.cpf ? String(req.body.cpf).trim() : "";
