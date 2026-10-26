@@ -11,8 +11,9 @@ allow them to tag it
 move to sorted folder and rename to UUID from db
 TODO: add source link to Image table in DB
  */
-async function getPendingFiles(path:string= "./media/unsorted"):Promise<string[]>{
+async function getUnsortedFileList(path:string= "./media/unsorted"):Promise<string[]>{
     // return await fs.readdir(folderPath);
+    //TODO add functionality to the test form to get the list of files, update the preview image when the user selects one!
 }
 
 export async function tagImage(req:any,res:any){
