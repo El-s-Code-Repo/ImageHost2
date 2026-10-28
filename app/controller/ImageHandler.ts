@@ -4,6 +4,7 @@ import sharp from "sharp"
 import * as QueryString from "qs"
 import {Image} from "../model/Image.ts";
 import express from "express";
+import * as assert from "node:assert";
 /*
 [x] get list of pending images
 show first one to user
@@ -11,10 +12,9 @@ allow them to tag it
 move to sorted folder and rename to UUID from db
 TODO: add source link to Image table in DB
  */
-async function getUnsortedFileList(path:string= "./media/unsorted"):Promise<string[]>{
-    // return await fs.readdir(folderPath);
-    //TODO add functionality to the test form to get the list of files, update the preview image when the user selects one!
-    return ["123"]
+
+export async function getUnsortedFiles(req:any,res:any){
+    res.json(await Image.getUnsortedFileList())
 }
 
 export async function tagImage(req:any,res:any){
@@ -30,7 +30,13 @@ export async function tagImage(req:any,res:any){
         }
     }
     console.log(tags)
-
+    if(tags.length === 0){
+        const msg = "you need at least one tag for the image to be tagged dipshit";
+        if (req.is("application/json") || req.headers.accept?.includes("application/json")) {
+            return res.status(400).json({success: false, message: msg});
+        }
+        return res.redirect("/test.html?error=" + encodeURIComponent(msg));
+    }
     const sourceLink:string = req.body?.sauce;
     console.log(fileName)
     console.log(tags)
@@ -62,7 +68,7 @@ async function archiveImage(fileName:string, id:string) {
         await fs.unlink(source+fileName)
         return target+id+".png"
 }
-    return "if this gets returned we royally fucked up somewhere"
+    // return "if this gets returned we royally fucked up somewhere"
 }
 
 /*

@@ -3,6 +3,7 @@ import {Connection} from "../controller/Connector.ts"
 import {Tag} from "./Tag.ts";
 import {UUID} from "mongodb";
 import path from "node:path";
+import fs from "node:fs/promises";
 
 export class Image {
     _id: string;
@@ -12,7 +13,7 @@ export class Image {
     * Do not use constructor directly, call Image.create() instead
     * */
     constructor(tags:Tag[],filetype:string,_id:string = "") {
-        this.tags = Array.from(tags); //TODO update to use new tag model!
+        this.tags = Array.from(tags);
         this.extension = filetype
         this._id = _id;
     }
@@ -86,6 +87,12 @@ export class Image {
             return ".gif"
         }
         return ".png"
+    }
+
+    static async getUnsortedFileList(path:string= "./media/unsorted"):Promise<string[]>{
+        const FOLDERPATH:string = "./media/unsorted"
+        return await fs.readdir(FOLDERPATH);
+        //TODO add functionality to the test form to get the list of files, update the preview image when the user selects one!
     }
 
 }

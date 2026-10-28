@@ -3,13 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+        .constant-size {
+            /*width: 300px;*/
+            height: 300px;
+            object-fit: fill; /* Keeps aspect ratio and crops to fit */
+        }
+        .alertbox{
+            /*border:5px solid red;*/
+
+            background: red;
+        }
+    </style>
 </head>
 <body>
-<img src="/media/unsorted">
+<img id="PreviewImage" src="/media/unsorted"alt="description" class="constant-size">
+<div class="alertbox" id="AlertPanel"></div>
 <form action="/formdata" method="post">
     <label>
         File Name<br>
-        <input id="fileName" type="text" name="fileName" value="corn_-_deadlock.gif" > readonly
+<!--        <input id="fileName" type="text" name="fileName" value="corn_-_deadlock.gif" > readonly-->
+        <select name="fileName" id="Images"></select>
+
+
     </label> <br>
     <label>
         Tags "#first #second..."<br>
@@ -23,5 +39,36 @@
 
 </form>
 </body>
-<script
+<script>
+    let preview = document.getElementById("PreviewImage")
+    let list = document.getElementById("Images")
+    let alertPannel = document.getElementById("AlertPanel")
+    let baseAddress = "/media/unsorted/"
+    const urlParams = new URLSearchParams(window.location.search)
+    let error = urlParams.get("error")
+    if(error){
+        alertPannel.textContent = error
+    }
+
+
+
+    list.addEventListener("click", ()=>{
+        preview.src = baseAddress+list.value
+    })
+    document.addEventListener("DOMContentLoaded", async function() {
+        const response = await fetch('http://localhost:3000/getUnsortedFiles');
+        let data = await response.json();
+        console.log(data)
+        preview.src=baseAddress+data[0]
+
+        for (const image of data) {
+            const option = document.createElement("option");
+            option.value = image;
+            option.text = image;
+            list.appendChild(option);
+            // list.appendChild()
+        }
+    });
+
+</script>
 </html>
