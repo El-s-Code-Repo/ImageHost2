@@ -2,20 +2,22 @@
 import {Connection} from "../controller/Connector.ts"
 import {Tag} from "./Tag.ts";
 import {UUID} from "mongodb";
+import path from "node:path";
 
 export class Image {
     _id: string;
-
+    extension:string
     private tags:Tag[];
     /*
     * Do not use constructor directly, call Image.create() instead
     * */
-    constructor(tags:Tag[],_id:string = "") {
+    constructor(tags:Tag[],filetype:string,_id:string = "") {
         this.tags = Array.from(tags); //TODO update to use new tag model!
+        this.extension = filetype
         this._id = _id;
     }
 
-    static async create(tags:string[],_id:string=""):Promise<Image>{
+    static async create(tags:string[],filetype:string,_id:string=""):Promise<Image>{
         let tagList:Tag[] = []
 
         for (const tagName of tags) {
@@ -24,15 +26,15 @@ export class Image {
         }
 
         if(_id === ""){
-            return new Image(tagList)
+            return new Image(tagList,filetype)
         }else{
-            return new Image(tagList,_id)
+            return new Image(tagList,filetype,_id)
         }
     }
 
     static async get(id:UUID){
         let lookupResult = await Connection.images.findOne({_id:id});
-        return Image.create(lookupResult.tags,lookupResult._id);
+        return Image.create(lookupResult.tags,lookupResult.extension,lookupResult._id);
     }
 
     async save() {
@@ -42,13 +44,14 @@ export class Image {
             if (this._id === ""){
                 let data = await Connection.images.insertOne({
                     tags:tagSlugs,
+                    extension:this.extension
                     });
                 this._id = data.insertedId.toString();
 
             }else{
                 let data = await Connection.images.updateOne(
                     {_id: this._id},
-                    {$set: {tags: tagSlugs}},
+                    {$set: {tags: tagSlugs, extension:this.extension}},
                     {upsert: true}
                 );
                 if (data.upsertedId != null) {
@@ -74,6 +77,15 @@ export class Image {
             tagList.push(tag.getSlug())
         }
         return tagList
+    }
+
+
+    static parseExtension(fileName:string){
+        let filetype = path.extname(fileName)
+        if (filetype === ".gif"){
+            return ".gif"
+        }
+        return ".png"
     }
 
 }
